@@ -138,16 +138,15 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     /**
-     * 6. 프로젝트 모집 수동 마감
+     * 6. 프로젝트 모집 수동 마감 (파라미터 주입 방식)
      */
     @Override
-    public ProjectResponseDto closeProjectRecruitment(Long projectId) {
+    public ProjectResponseDto closeProjectRecruitment(Long projectId, Long userId) { // 👈 파라미터 추가
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, projectId));
 
-        // [추가] 요청한 사용자가 프로젝트 방장인지 권한 검증
-        Long currentUserId = SecurityUtils.getCurrentUserId();
-        if (!project.getOwner().getId().equals(currentUserId)) {
+        // 외부에서 넘겨받은 userId로 권한 검증
+        if (!project.getOwner().getId().equals(userId)) {
             throw new BusinessException(ErrorCode.AUTH_ACCESS_DENIED);
         }
 
@@ -179,6 +178,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .collect(Collectors.toList());
     }
 
+    //모집글 재오픈
     @Transactional
     @Override
     public ProjectResponseDto reopenProject(Long projectId, Long userId) {

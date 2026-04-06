@@ -61,7 +61,8 @@ public class UserController {
             @RequestPart("profileImage") MultipartFile profileImage) {
 
         log.info("프로필 이미지 수정 요청 - ID: {}", userDetails.getId());
-        String newImgUrl = userService.updateProfileImage(userDetails.getId(), profileImage);
+        // 서비스에서 추가한 currentUser 파라미터를 넘겨줍니다.
+        String newImgUrl = userService.updateProfileImage(userDetails.getId(), userDetails.getUser(), profileImage); // 👈 수정
 
         return new SuccessResponse<>("프로필 이미지가 성공적으로 수정되었습니다.", newImgUrl);
     }
@@ -75,45 +76,46 @@ public class UserController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         log.info("프로필 이미지 삭제 요청 - ID: {}", userDetails.getId());
-        userService.deleteProfileImage(userDetails.getId());
+        // 서비스에서 추가한 currentUser 파라미터를 넘겨줍니다.
+        userService.deleteProfileImage(userDetails.getId(), userDetails.getUser()); // 👈 수정
         return new SuccessResponse<>("프로필 이미지가 기본 이미지로 초기화되었습니다.");
     }
 
-    // --- 마이페이지 활동 이력 (나만 접근 가능) ---
+// --- 마이페이지 활동 이력 (나만 접근 가능) ---
 
     /**
      * 5. 내 모집글 조회 (내가 작성자/방장인 글)
-     * GET /api/users/me/posts/owned
      */
     @GetMapping("/me/posts/owned")
     public SuccessResponse<List<ProjectResponseDto>> getMyOwnedPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        List<ProjectResponseDto> projects = userService.getMyOwnedPosts(userDetails.getId());
+        // 서비스 호출 시 currentUser 추가
+        List<ProjectResponseDto> projects = userService.getMyOwnedPosts(userDetails.getId(), userDetails.getUser()); // 👈 수정
         return new SuccessResponse<>("내 모집글 조회가 완료되었습니다.", projects);
     }
 
     /**
      * 6. 참여 중인 프로젝트 조회 (승인 완료된 상태)
-     * GET /api/users/me/posts/joined
      */
     @GetMapping("/me/posts/joined")
     public SuccessResponse<List<ProjectResponseDto>> getMyJoinedProjects(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        List<ProjectResponseDto> projects = userService.getMyJoinedProjects(userDetails.getId());
+        // 서비스 호출 시 currentUser 추가
+        List<ProjectResponseDto> projects = userService.getMyJoinedProjects(userDetails.getId(), userDetails.getUser()); // 👈 수정
         return new SuccessResponse<>("참여 중인 프로젝트 조회가 완료되었습니다.", projects);
     }
 
     /**
      * 7. 내 신청 현황 조회 (대기/거절 상태 - PENDING, REJECTED)
-     * GET /api/users/me/applications
      */
     @GetMapping("/me/applications")
     public SuccessResponse<List<ApplicationResponseDto>> getMyApplications(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        List<ApplicationResponseDto> applications = userService.getMyPendingApplications(userDetails.getId());
+        // 서비스 호출 시 currentUser 추가
+        List<ApplicationResponseDto> applications = userService.getMyPendingApplications(userDetails.getId(), userDetails.getUser()); // 👈 수정
         return new SuccessResponse<>("내 신청 및 거절 현황 조회가 완료되었습니다.", applications);
     }
 

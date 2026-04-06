@@ -83,26 +83,28 @@ public class ProjectController {
      * 프로젝트 삭제
      */
     @DeleteMapping("/{projectId}")
-    public SuccessResponse<Void> deleteProject(@PathVariable Long projectId) {
-        log.info("프로젝트 삭제 요청 - projectId: {}", projectId);
+    public SuccessResponse<Void> deleteProject(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        // 1. 현재 로그인한 유저의 ID를 가져옵니다. (기존에 쓰시던 SecurityUtils 활용)
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        log.info("프로젝트 삭제 요청 - projectId: {}, userId: {}", projectId, userDetails.getId());
 
-        // 2. 서비스 호출 시 프로젝트 ID와 유저 ID를 함께 넘깁니다.
-        // 이제 ProjectService.deleteProject(Long, Long) 이므로 에러가 나지 않습니다.
-        projectService.deleteProject(projectId, currentUserId);
+        // 서비스 호출 시 userDetails에서 ID를 꺼내서 전달
+        projectService.deleteProject(projectId, userDetails.getId());
 
         return new SuccessResponse<>("프로젝트가 성공적으로 삭제되었습니다.");
     }
 
-    /**
-     * 프로젝트 수동 마감
-     */
     @PatchMapping("/{projectId}/close")
-    public SuccessResponse<ProjectResponseDto> closeProjectRecruitment(@PathVariable Long projectId) {
-        log.info("프로젝트 수동 마감 요청 - projectId: {}", projectId);
-        ProjectResponseDto responseDto = projectService.closeProjectRecruitment(projectId);
+    public SuccessResponse<ProjectResponseDto> closeProjectRecruitment(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        log.info("프로젝트 수동 마감 요청 - projectId: {}, userId: {}", projectId, userDetails.getId());
+
+        // 서비스에 ID 전달
+        ProjectResponseDto responseDto = projectService.closeProjectRecruitment(projectId, userDetails.getId());
+
         return new SuccessResponse<>("프로젝트 모집이 마감되었습니다.", responseDto);
     }
 

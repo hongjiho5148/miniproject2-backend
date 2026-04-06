@@ -38,14 +38,13 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    // 이미지가 저장될 실제 경로 (내 컴퓨터 사용자 폴더 하위)
-    private final String uploadPath = System.getProperty("user.home") + "/mate_uploads/profiles/";
+    private static final String DEFAULT_PROFILE_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
     /**
      * 1. 신규 회원을 등록(회원가입) - 기본 이미지 자동 할당
      */
     @Override
-    public UserResponseDto register(UserRequestDto requestDto) { // 👈 MultipartFile 파라미터 삭제
+    public UserResponseDto register(UserRequestDto requestDto) {
         // 중복 체크
         isEmailAvailable(requestDto.getEmail());
         isPhoneAvailable(requestDto.getPhoneNumber(), null);
@@ -55,8 +54,7 @@ public class AuthServiceImpl implements AuthService {
         requestDto.setPassword(encodedPassword);
 
         // 1. 기존 파일 저장 로직 삭제 및 기본 이미지 할당
-        String defaultImgUrl = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-        requestDto.setProfileImg(defaultImgUrl);
+        requestDto.setProfileImg(DEFAULT_PROFILE_IMG);
         log.info("회원가입 기본 프로필 이미지 세팅 완료");
 
         // 2. 닉네임 미입력 시 이메일 기반 자동 할당 (기존 로직 유지)

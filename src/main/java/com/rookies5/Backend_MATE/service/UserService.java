@@ -45,25 +45,20 @@ public interface UserService {
     /**
      * 7. 프로필 이미지 단독 수정
      */
-    String updateProfileImage(Long userId, MultipartFile profileImage);
+    // 7. 프로필 이미지 수정 (파라미터 추가)
+    String updateProfileImage(Long userId, User currentUser, MultipartFile profileImage);
 
     /**
      * 8. 프로필 이미지 삭제 (기본 이미지로 초기화)
      */
-    void deleteProfileImage(Long userId);
+    void deleteProfileImage(Long userId, User currentUser);
 
-    /**
-     * 9. 내가 작성한 모집글 조회 (내가 방장인 것)
-     */
-    List<ProjectResponseDto> getMyOwnedPosts(Long userId);
+    // 9. 내가 작성한 모집글 조회 (파라미터 추가)
+    List<ProjectResponseDto> getMyOwnedPosts(Long userId, User currentUser);
 
-    /**
-     * 10. 참여 중인 프로젝트/스터디 조회 (승인된 것)
-     */
-    List<ProjectResponseDto> getMyJoinedProjects(Long userId);
+    // 10. 참여 중인 프로젝트/스터디 조회 (파라미터 추가)
+    List<ProjectResponseDto> getMyJoinedProjects(Long userId, User currentUser);
 
-    /**
-     * 11. 내 신청 현황 조회 (대기/거절 상태인 것)
-     */
-    List<ApplicationResponseDto> getMyPendingApplications(Long userId);
+    // 11. 내 지원 현황 조회 (파라미터 추가)
+    List<ApplicationResponseDto> getMyPendingApplications(Long userId, User currentUser);
 }

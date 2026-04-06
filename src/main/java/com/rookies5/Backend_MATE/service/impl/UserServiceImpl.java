@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.rookies5.Backend_MATE.service.CloudinaryService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,8 +45,7 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final String uploadPath = System.getProperty("user.home") + "/mate_uploads/profiles/";
-
+    private final CloudinaryService cloudinaryService;
     private static final String DEFAULT_PROFILE_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
     /**
@@ -183,113 +183,92 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 7. 프로필 이미지 수정 (로컬 저장 방식 적용)
+     * 7. 프로필 이미지 수정 (본인 확인 + Cloudinary 적용)
      */
     @Override
-    public String updateProfileImage(Long userId, MultipartFile profileImage) {
-        // 1. 유저 조회
+    public String updateProfileImage(Long userId, User currentUser, MultipartFile profileImage) {
+        // 1. 본인 확인 검증 (수정하려는 대상 ID가 로그인한 유저 ID와 같은지)
+        if (!userId.equals(currentUser.getId())) {
+            throw new BusinessException(ErrorCode.AUTH_ACCESS_DENIED); // 권한 없음 에러
+        }
+
+        // 2. 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, userId));
 
-        // 2. 파일 유효성 검사
+        // 3. 파일 유효성 검사
         if (profileImage == null || profileImage.isEmpty()) {
             throw new BusinessException(ErrorCode.VALIDATION_ERROR, "업로드할 이미지가 없습니다.");
         }
 
-        try {
-            // 3. 공통 메서드를 사용하여 기존 파일 삭제
-            deleteActualFile(user.getProfileImg());
+        // 4. Cloudinary 업로드
+        String newImgUrl = cloudinaryService.uploadImage(profileImage);
 
-            // 4. 저장 폴더 생성
-            java.io.File folder = new java.io.File(uploadPath);
-            if (!folder.exists()) folder.mkdirs();
+        // 5. DB 업데이트
+        user.updateProfileImg(newImgUrl);
 
-            // 5. 새 파일명 생성 (UUID 활용)
-            String originalFilename = profileImage.getOriginalFilename();
-            String extension = (originalFilename != null && originalFilename.contains("."))
-                    ? originalFilename.substring(originalFilename.lastIndexOf(".")) : "";
-            String storeFilename = java.util.UUID.randomUUID().toString() + extension;
-
-            // 6. 새 파일 실제 저장
-            profileImage.transferTo(new java.io.File(uploadPath + storeFilename));
-
-            // 7. DB 경로 업데이트 및 반환
-            String newImgUrl = "/uploads/profiles/" + storeFilename;
-            user.updateProfileImg(newImgUrl);
-
-            log.info("유저(ID: {})의 프로필 이미지가 업데이트되었습니다: {}", userId, storeFilename);
-            return newImgUrl;
-
-        } catch (java.io.IOException e) {
-            log.error("파일 저장 중 오류 발생: {}", e.getMessage());
-            throw new BusinessException(ErrorCode.FILE_UPLOAD_ERROR);
-        }
+        log.info("유저(ID: {}) 본인이 프로필 이미지를 업데이트했습니다.", userId);
+        return newImgUrl;
     }
 
     /**
-     * 8. 프로필 이미지 삭제 (서버 파일 삭제 + 기본 이미지로 복구)
+     * 8. 프로필 이미지 삭제 (본인 확인 + 기본 이미지로 복구)
      */
     @Override
-    public void deleteProfileImage(Long userId) {
+    public void deleteProfileImage(Long userId, User currentUser) { // 👈 1. currentUser 추가
+        // 2. 본인 확인 검증
+        if (!userId.equals(currentUser.getId())) {
+            throw new BusinessException(ErrorCode.AUTH_ACCESS_DENIED);
+        }
+
+        // 3. 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, userId));
 
-        // 1. 공통 메서드를 사용하여 실제 파일 삭제
-        deleteActualFile(user.getProfileImg());
+        // Cloudinary 사용 시에는 로컬 파일 삭제(deleteActualFile)가 필요 없습니다.
+        // 보통은 DB 주소만 기본값으로 바꿔주는 것만으로도 충분합니다.
 
-        // 2. DB 정보는 기본 이미지 URL로 변경
+        // 5. DB 정보를 기본 이미지 URL로 변경
         user.updateProfileImg(DEFAULT_PROFILE_IMG);
 
         log.info("유저(ID: {})의 프로필 이미지가 기본 이미지로 초기화되었습니다.", userId);
     }
 
     /**
-     * 9. 내가 작성한 모집글 조회 (내가 방장인 것 - 명세서 4.5.3-1)
+     * 9. 내가 작성한 모집글 조회 (본인 확인 추가)
      */
     @Transactional(readOnly = true)
     @Override
-    public List<ProjectResponseDto> getMyOwnedPosts(Long userId) {
+    public List<ProjectResponseDto> getMyOwnedPosts(Long userId, User currentUser) {
+        // 본인 확인: 조회하려는 대상 ID가 내 ID와 다르면 예외 발생
+        if (!userId.equals(currentUser.getId())) {
+            throw new BusinessException(ErrorCode.AUTH_ACCESS_DENIED);
+        }
         return projectService.getMyOwnedPosts(userId);
     }
 
     /**
-     * 10. 참여 중인 프로젝트/스터디 조회 (승인 완료 - 명세서 4.5.3-2)
+     * 10. 참여 중인 프로젝트/스터디 조회 (본인 확인 추가)
      */
     @Transactional(readOnly = true)
     @Override
-    public List<ProjectResponseDto> getMyJoinedProjects(Long userId) {
+    public List<ProjectResponseDto> getMyJoinedProjects(Long userId, User currentUser) {
+        if (!userId.equals(currentUser.getId())) {
+            throw new BusinessException(ErrorCode.AUTH_ACCESS_DENIED);
+        }
         return projectService.getMyJoinedProjects(userId);
     }
 
     /**
-     * 11. 내 지원 현황 조회 (대기/거절 상태 - 명세서 4.5.3-3)
+     * 11. 내 지원 현황 조회 (본인 확인 추가)
      */
     @Transactional(readOnly = true)
     @Override
-    public List<ApplicationResponseDto> getMyPendingApplications(Long userId) {
+    public List<ApplicationResponseDto> getMyPendingApplications(Long userId, User currentUser) {
+        if (!userId.equals(currentUser.getId())) {
+            throw new BusinessException(ErrorCode.AUTH_ACCESS_DENIED);
+        }
         return applicationService.getMyPendingApplications(userId);
     }
 
-    /**
-     * [공통] 로컬 서버에 저장된 실제 파일을 삭제하는 내부 메서드
-     */
-    private void deleteActualFile(String imgUrl) {
-        // 우리가 관리하는 경로(/uploads/profiles/)인 경우에만 파일 삭제 시도
-        if (imgUrl != null && imgUrl.startsWith("/uploads/profiles/")) {
-            try {
-                String fileName = imgUrl.replace("/uploads/profiles/", "");
-                java.io.File fileToDelete = new java.io.File(uploadPath + fileName);
-
-                if (fileToDelete.exists()) {
-                    if (fileToDelete.delete()) {
-                        log.info("로컬 파일 삭제 성공: {}", fileName);
-                    } else {
-                        log.warn("로컬 파일 삭제 실패 (권한 등): {}", fileName);
-                    }
-                }
-            } catch (Exception e) {
-                log.error("파일 삭제 중 오류 발생: {}", e.getMessage());
-            }
-        }
-    }
 }
