@@ -74,6 +74,9 @@ public class SecurityConfig {
                         // 프로젝트 목록/상세 조회 허용
                         .requestMatchers(HttpMethod.GET, "/api/projects/**").permitAll()
 
+                        // 💡 업로드 파일(프로필 이미지 등) 누구나 접근 가능
+                        .requestMatchers("/uploads/**").permitAll()
+
                         // 3. 관리자 페이지 및 기타 설정들...
                         .requestMatchers("/admin/signup", "/admin/login").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
