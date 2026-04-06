@@ -13,12 +13,12 @@ public class ProjectMemberMapper {
         return ProjectMemberResponseDto.builder()
                 .id(member.getId())
                 .projectId(member.getProject().getId())
-                // 💡 엔티티 필드명에 맞춰 userId로 수정 (지호 님 엔티티 기준)
+                // 💡 엔티티 필드명에 맞춰 userId로 수정
                 .userId(member.getUser().getId())
                 .role(member.getRole())
-
-                // 💡 지호 님이 강조한 '닉네임'과 '포지션'만 쏙쏙! (프사는 삭제)
                 .nickname(member.getUser().getNickname())
+                // 💡 추가: 유저 엔티티의 최신 프로필 이미지를 DTO에 담아줍니다.
+                .profileImg(member.getUser().getProfileImg())
                 .position(member.getUser().getPosition())
                 .build();
     }

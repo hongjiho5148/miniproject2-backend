@@ -23,6 +23,8 @@ public class BoardPostMapper {
                 .projectId(post.getProject().getId())
                 .authorId(post.getAuthor().getId())
                 .authorNickname(post.getAuthor().getNickname()) // 작성자 닉네임 매핑
+                // ★ 작성자의 최신 프로필 이미지 매핑 추가
+                .authorProfileImg(post.getAuthor() != null ? post.getAuthor().getProfileImg() : null)
                 .title(post.getTitle())
                 .content(post.getContent())
                 .isAuthor(isAuthor)

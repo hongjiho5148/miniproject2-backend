@@ -17,6 +17,8 @@ public class ProjectResponseDto {
     private Long id;
     private Long ownerId;
     private String ownerNickname;
+    // 💡 마이페이지에서 수정한 최신 이미지를 반영하기 위해 추가
+    private String ownerProfileImg;
 
     private Category category;
     private String title;
