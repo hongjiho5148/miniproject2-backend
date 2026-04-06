@@ -245,7 +245,12 @@ background:rgba(0,0,0,0.5);" onclick="closeProjectModal()"></div>
                     document.getElementById('projectModalContent').innerHTML = `
                         <p>제목: ${p.title}</p>
                         <p>작성자: ${p.ownerNickname || '알 수 없음'}</p>
+                        <p>카테고리: ${p.category}</p>
+                        <p>모집 인원: ${p.recruitCount}명</p>
+                        <p>신청자 수: ${p.currentCount}명</p>
                         <p>내용: ${p.content}</p>
+                        <p>생성일: ${p.createdAt}</p>
+                        <p>마감일: ${p.endDate}</p>
                     `;
                     openProjectModal();
                 });

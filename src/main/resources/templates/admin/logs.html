@@ -2,50 +2,31 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>회원 관리</title>
+    <title>로그 관리</title>
     <style>
         body { margin:0; font-family:Arial; background:#f1f5f9; }
 
         .header { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#1e293b; color:white; }
+        .left { display:flex; gap:20px; align-items:center; }
+        .title { font-weight:bold; font-size:18px; }
+
         .header-right { display:flex; gap:10px; align-items:center; }
-        .search-box {
-            display:flex;
-            align-items:center;
-            gap:5px;
-        }
-
-        .search-box input {
-            padding:6px 10px;
-            border-radius:5px;
-            border:none;
-        }
-
-        .search-box button {
-            padding:6px 10px;
-            border:none;
-            border-radius:5px;
-            background:#6366f1;
-            color:white;
-            cursor:pointer;
-        }
+        .search-box { display:flex; align-items:center; gap:5px; }
+        .search-box input { padding:6px 10px; border-radius:5px; border:none; }
+        .search-box button { padding:6px 10px; border:none; border-radius:5px; background:#6366f1; color:white; cursor:pointer; }
 
         .container { display:flex; }
         .sidebar { width:220px; background:#0f172a; color:white; padding:20px; height:100vh; }
         .sidebar a { display:block; padding:10px; color:white; text-decoration:none; }
         .sidebar a:hover { background:#1e293b; }
 
-        .main { flex:1; padding:20px; }
+        .main { flex:1; padding:20px; overflow-x:auto; }
         .card { background:white; padding:15px; border-radius:10px; }
-        .left {
-            display:flex;
-            gap:20px;
-            align-items:center;
-        }
-        table { width:100%; border-collapse:collapse; }
-        th, td { padding:10px; border-bottom:1px solid #ddd; }
+        .card-left-align { text-align:left; }
 
         .pagination { text-align:center; margin-top:10px; }
-        .pagination button { margin:2px; padding:5px 10px; }
+        .pagination a { border:1px solid #ddd; background:white; padding:5px 10px; margin:2px; border-radius:5px; text-decoration:none; color:black; }
+        .pagination .active { background:#6366f1; color:white; }
     </style>
 </head>
 
@@ -55,16 +36,6 @@
     <div class="left">
         <div>mate ADMIN</div>
         <div class="title">로그 관리</div>
-    </div>
-
-    <div class="header-right">
-        <!-- 🔍 검색창 -->
-        <form class="search-box" action="/admin/search" method="get">
-            <input type="text" name="keyword" placeholder="로그 검색...">
-            <button type="submit">🔍</button>
-        </form>
-
-        <div>📜</div>
     </div>
 </div>
 
@@ -80,7 +51,11 @@
         <a href="/admin/logs">📜 활동로그</a>
 
         <div style="margin-top:50px;">
-            <a href="#">🚪 로그아웃</a>
+            <form action="/admin/logout" method="post" style="display:inline;">
+                <button type="submit" style="background:#6366f1; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">
+                    🚪 로그아웃
+                </button>
+            </form>
         </div>
     </div>
 
@@ -89,27 +64,24 @@
             <h3>활동 로그</h3>
 
             <ul>
-                <li th:each="log : ${logs}" th:text="${log}"></li>
+                <li class="card-left-align" th:each="log : ${logs.content}" th:text="${log.action}"></li>
             </ul>
 
             <div class="pagination">
-                <button>&lt;</button>
-                <button class="active">1</button>
-                <button>2</button>
-                <button>3</button>
-                <button>&gt;</button>
+                <a th:href="@{/admin/logs(logPage=0)}">&lt;&lt;</a>
+                <a th:if="${logs.number > 0}" th:href="@{/admin/logs(logPage=${logs.number-1})}">&lt;</a>
+
+                <span th:each="i : ${#numbers.sequence(0, logs.totalPages-1)}" th:if="${i >= logs.number-2 and i <= logs.number+2}">
+                    <a th:href="@{/admin/logs(logPage=${i})}" th:text="${i+1}" th:classappend="${i==logs.number} ? 'active'"></a>
+                </span>
+
+                <a th:if="${logs.number < logs.totalPages-1}" th:href="@{/admin/logs(logPage=${logs.number+1})}">&gt;</a>
+                <a th:href="@{/admin/logs(logPage=${logs.totalPages-1})}">&gt;&gt;</a>
             </div>
         </div>
     </div>
 
 </div>
-
-<script>
-    function toggleSearch(){
-        const box = document.getElementById("searchBox");
-        box.style.display = box.style.display === "block" ? "none" : "block";
-    }
-</script>
 
 </body>
 </html>

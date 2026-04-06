@@ -50,6 +50,7 @@ public class AdminController {
         adminLogRepository.save(log);
     }
 
+
     // ================== 대시보드 ==================
     @GetMapping("/dashboard")
     public String dashboard(@RequestParam(defaultValue = "0") int userPage,
@@ -69,11 +70,7 @@ public class AdminController {
         // 프로젝트 페이징
         Page<ProjectResponseDto> projects = projectRepository
                 .findAllIncludingDeleted(PageRequest.of(projectPage, PAGE_SIZE))
-                .map(project -> {
-                    ProjectResponseDto dto = ProjectMapper.mapToResponse(project);
-                    dto.setDeleted(project.getDeletedAt() != null);
-                    return dto;
-                });
+                .map(ProjectMapper::mapToResponse);
 
         // 로그 페이징 (최신순)
         Pageable logPageable = PageRequest.of(logPage, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -102,6 +99,18 @@ public class AdminController {
         return "admin/users";
     }
 
+    @GetMapping("/logs")
+    public String logManagement(@RequestParam(defaultValue = "0") int logPage,
+                                @RequestParam(required = false) String keyword,
+                                Model model) {
+        int LOG_PAGE_SIZE = 20; // 1페이지당 20개
+        Pageable pageable = PageRequest.of(logPage, LOG_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AdminLog> logs = adminLogRepository.findAll(pageable);
+        model.addAttribute("logs", logs);
+        model.addAttribute("keyword", keyword);
+        return "admin/logs"; // logs.html
+    }
+
     // 회원 상세 (모달용)
     @GetMapping("/users/{id}")
     @ResponseBody
@@ -120,8 +129,16 @@ public class AdminController {
         User user = userRepository.findByIdIncludingDeleted(id)
                 .orElseThrow(() -> new RuntimeException("회원 없음"));
 
+        // 회원 소프트 삭제
         userRepository.softDeleteById(id);
         addLog(user.getNickname() + "님 계정을 삭제했습니다.");
+
+        // 회원이 작성한 프로젝트도 소프트 삭제
+        List<Project> projects = projectRepository.findAllByOwnerId(id);
+        for (Project p : projects) {
+            projectRepository.softDeleteById(p.getId());
+            addLog(p.getTitle() + " 프로젝트를 삭제했습니다.");
+        }
 
         if ("users".equals(redirectPage)) {
             return "redirect:/admin/users?userPage=" + userPage;
@@ -148,15 +165,12 @@ public class AdminController {
     }
 
     // ================== 프로젝트 ==================
+    @Transactional(readOnly = true)
     @GetMapping("/projects")
     public String projectManagement(@RequestParam(defaultValue = "0") int projectPage, Model model) {
         Page<ProjectResponseDto> projects = projectRepository
                 .findAllIncludingDeleted(PageRequest.of(projectPage, PAGE_SIZE))
-                .map(project -> {
-                    ProjectResponseDto dto = ProjectMapper.mapToResponse(project);
-                    dto.setDeleted(project.getDeletedAt() != null);
-                    return dto;
-                });
+                .map(ProjectMapper::mapToResponse);
         model.addAttribute("projects", projects);
         return "admin/projects";
     }
@@ -227,11 +241,7 @@ public class AdminController {
         // 프로젝트 검색
         List<ProjectResponseDto> projectList = projectRepository.findAllIncludingDeletedList().stream()
                 .filter(p -> p.getTitle().contains(keyword))
-                .map(project -> {
-                    ProjectResponseDto dto = ProjectMapper.mapToResponse(project);
-                    dto.setDeleted(project.getDeletedAt() != null);
-                    return dto;
-                })
+                .map(ProjectMapper::mapToResponse)
                 .toList();
         Page<ProjectResponseDto> projects = new PageImpl<>(projectList, PageRequest.of(projectPage, PAGE_SIZE), projectList.size());
 

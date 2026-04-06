@@ -18,6 +18,7 @@ public class UserMapper {
                 .techStacks(user.getTechStacks())
                 .profileImg(user.getProfileImg())
                 .createdAt(user.getCreatedAt())
+                .deleted(user.getDeletedAt() != null)
                 .build();
     }
 
