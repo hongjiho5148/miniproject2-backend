@@ -42,11 +42,17 @@ public class ProjectController {
 
     /**
      * 전체 프로젝트 목록 조회
+     * 💡 필터링을 위해 @RequestParam category와 keyword를 추가했습니다.
      */
     @GetMapping
-    public SuccessResponse<List<ProjectResponseDto>> getAllProjects() {
-        log.info("전체 프로젝트 목록 조회 요청");
-        List<ProjectResponseDto> responseDtoList = projectService.getAllProjects();
+    public SuccessResponse<List<ProjectResponseDto>> getAllProjects(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword) {
+        log.info("전체 프로젝트 목록 조회 요청 - category: {}, keyword: {}", category, keyword);
+
+        // 서비스 메서드 호출 시 파라미터를 함께 전달합니다.
+        List<ProjectResponseDto> responseDtoList = projectService.getAllProjects(category, keyword);
+
         return new SuccessResponse<>("프로젝트 목록 조회가 완료되었습니다.", responseDtoList);
     }
 

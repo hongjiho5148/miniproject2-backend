@@ -79,12 +79,30 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     /**
-     * 3. 전체 목록 조회
+     * 3. 전체 목록 조회 (카테고리 & 키워드 필터링 추가)
      */
     @Transactional(readOnly = true)
     @Override
-    public List<ProjectResponseDto> getAllProjects() {
+    public List<ProjectResponseDto> getAllProjects(String category, String keyword) {
         return projectRepository.findAll().stream()
+                // 💡 1차 필터링: 카테고리
+                .filter(project -> {
+                    if (category != null && !category.trim().isEmpty()) {
+                        return project.getCategory() != null &&
+                                project.getCategory().toString().equalsIgnoreCase(category);
+                    }
+                    return true; // 카테고리 파라미터가 없으면 모두 통과
+                })
+                // 💡 2차 필터링: 키워드 (제목 또는 내용에 포함되어 있는지)
+                .filter(project -> {
+                    if (keyword != null && !keyword.trim().isEmpty()) {
+                        boolean matchTitle = project.getTitle() != null && project.getTitle().contains(keyword);
+                        boolean matchContent = project.getContent() != null && project.getContent().contains(keyword);
+                        return matchTitle || matchContent;
+                    }
+                    return true; // 키워드 파라미터가 없으면 모두 통과
+                })
+                // DTO 변환 후 리스트로 묶기
                 .map(ProjectMapper::mapToResponse)
                 .collect(Collectors.toList());
     }
