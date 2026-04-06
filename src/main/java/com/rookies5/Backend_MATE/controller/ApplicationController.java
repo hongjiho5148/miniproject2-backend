@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -64,24 +65,33 @@ public class ApplicationController {
     }
 
     /**
-     * 4. 지원서 승인 (방장용)
-     * PATCH /api/applications/{applicationId}/accept
+     * 4. 지원서 상태 변경 (승인/거절 통합)
+     * PATCH /api/applications/{applicationId}/status
      */
-    @PatchMapping("/{applicationId}/accept")
-    public SuccessResponse<ApplicationResponseDto> acceptApplication(@PathVariable Long applicationId) {
-        log.info("지원서 승인 요청 - applicationId: {}", applicationId);
-        ApplicationResponseDto responseDto = applicationService.acceptApplication(applicationId);
-        return new SuccessResponse<>("지원서가 승인되었습니다.", responseDto);
-    }
+    @PatchMapping("/{applicationId}/status")
+    public SuccessResponse<ApplicationResponseDto> updateApplicationStatus(
+            @PathVariable Long applicationId,
+            @RequestBody Map<String, String> statusMap) { // 요구사항대로 Map 사용
 
-    /**
-     * 5. 지원서 거절 (방장용)
-     * PATCH /api/applications/{applicationId}/reject
-     */
-    @PatchMapping("/{applicationId}/reject")
-    public SuccessResponse<ApplicationResponseDto> rejectApplication(@PathVariable Long applicationId) {
-        log.info("지원서 거절 요청 - applicationId: {}", applicationId);
-        ApplicationResponseDto responseDto = applicationService.rejectApplication(applicationId);
-        return new SuccessResponse<>("지원서가 거절되었습니다.", responseDto);
+        String status = statusMap.get("status");
+        log.info("지원서 상태 변경 요청 - ID: {}, Status: {}", applicationId, status);
+
+        ApplicationResponseDto responseDto;
+
+        // 대소문자 구분 없이 'accept'인 경우 승인 로직 실행
+        if ("accept".equalsIgnoreCase(status)) {
+            responseDto = applicationService.acceptApplication(applicationId);
+            return new SuccessResponse<>("지원서가 승인되었습니다.", responseDto);
+        }
+        // 'reject'인 경우 거절 로직 실행
+        else if ("reject".equalsIgnoreCase(status)) {
+            responseDto = applicationService.rejectApplication(applicationId);
+            return new SuccessResponse<>("지원서가 거절되었습니다.", responseDto);
+        }
+        // 그 외 잘못된 값이 들어온 경우 에러 처리
+        else {
+            throw new RuntimeException("잘못된 상태 값입니다. (accept 또는 reject여야 함)");
+            // 지호님 프로젝트에 BusinessException이 있다면 그걸 사용하세요!
+        }
     }
 }
