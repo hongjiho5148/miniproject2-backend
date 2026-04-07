@@ -1,0 +1,121 @@
+[33mb7d8320[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mtest/auth-security[m[33m)[m Merge origin/test/auth-security 충돌 해결
+[33mfa12bff[m 내 로패딩처리 수정
+[33m052dbb5[m[33m ([m[1;31morigin/test/auth-security[m[33m)[m 신청현황-지원 분야, 내 팀-역할 잘 뜨게 수정
+[33ma99eb6c[m 게시글 카테고리 추가
+[33m30dfaa8[m 7번 오류 수정
+[33m1f6e0ae[m 마이페이지 신청현황 탭 수정
+[33m9f7594d[m Merge branch 'test/auth-security' of https://github.com/MiniProject2-MATE/Backend-MATE into test/auth-security
+[33m981eab4[m feat: 지원자 정보에 기술 스택 필드 추가 및 Fetch Join(N+1) 성능 최적화
+[33me5674f4[m Merge branch 'test/auth-security' of https://github.com/MiniProject2-MATE/Backend-MATE into test/auth-security
+[33m1fe9160[m 탈퇴한 사용자 이메일, 닉네임, 전화번호도 중복확인이 되도록 수정
+[33m5e254ba[m fix: 탈퇴한 회원의 게시글 조회 시 발생하는 500 에러 해결
+[33ma83fef0[m fix: 프로젝트 통합 검색 시 기술 스택 필터링 누락 문제 해
+[33m5fea8d9[m 팉팀 게시판 오류 수정
+[33m0315810[m 비ì즈니스 로직 merge
+[33m3cb4b61[m Update ProjectServiceImpl.java
+[33m8142fcf[m admin merge
+[33m6039c04[m merge
+[33m3e9b0a8[m Update ApplicationController.java
+[33mc06ef10[m position 정보수정
+[33m9c7a1d6[m Merge branch 'test/auth-security' of https://github.com/MiniProject2-MATE/Backend-MATE into test/auth-security
+[33m1252725[m 모집글 수정할 때 기술스택 뜨도록 수정
+[33m2948cc0[m 프로필 이미지 오류 수ì 정
+[33m36ef502[m[33m ([m[1;31morigin/admin-logs-test[m[33m, [m[1;32madmin-logs-test[m[33m)[m log관리 및 관리자 페이지 연동 확인 완료
+[33mb223a31[m[33m ([m[1;31morigin/mergetest/cloudinary&auth/security[m[33m)[m Update ApplicationController.java
+[33mff88e2d[m 이미지 관련 수정
+[33m8e1d92f[m Merge branch 'test/auth-security' of https://github.com/MiniProject2-MATE/Backend-MATE into test/auth-security
+[33m7c52061[m 신청현황 탭 오류 수정
+[33m1e9ac33[m project 목록 조회 모두 접근 가능
+[33m81a99b2[m Update AuthController.java
+[33mdb2a6cb[m fix: 게시글 상세 페이지 댓글 조회 및 작성 API 경로 오류 수정
+[33m88b8b73[m logs í대시보드 수정
+[33m54df315[m Merge branch 'test/auth-security' into mergetest/cloudinary&auth/security
+[33m6b50ceb[m Merge branch 'refactor/controller-logic' into mergetest/cloudinary&auth/security
+[33ma47b8c7[m feat: 모집글 목록 조회 시 카테고리 및 키워드 필터링 기능 추가
+[33mc63914c[m Update application-dev.properties
+[33m2b14974[m Merge branch 'feat/cloudinary-add' into mergetest/cloudinary&auth/security
+[33mfbbb2ac[m[33m ([m[1;31morigin/refactor/controller-logic[m[33m)[m TechStack.java add,기슬스í술스택 검증추가
+[33m810d159[m[33m ([m[1;31morigin/refactor/password[m[33m)[m password
+[33mfcb1b2e[m[33m ([m[1;31morigin/feat/cloudinary-add[m[33m)[m cloudinary add + project 삭제, 수동마감 권한 설정
+[33m77af98a[m fix: 로그인 및 계정 찾기 기능 통합 오류 수정
+[33mb6d7413[m  Controller 비즈니스로직 Service로 분리
+[33m646f21f[m[33m ([m[1;31morigin/refactor/soft-delete[m[33m)[m 회원탈퇴, 모집글, 게시글, 댓글, 멤버 관련 삭제 - soft delete로 구현
+[33mfb8b47d[m[33m ([m[1;31morigin/refactor/board[m[33m)[m 멤버 관련 수령
+[33m054814d[m 유저 및 게시판 코드 수정
+[33m147e24c[m 댓글 목록 조회(멤버만 가능)
+[33m1a13b01[m 댓글 권한 수정
+[33m468e746[m 권한 수정
+[33m69370f9[m Merge pull request #4 from MiniProject2-MATE/refactor/unify-api-response
+[33m174b2f3[m[33m ([m[1;31morigin/refactor/unify-api-response[m[33m)[m 게시물, 모집글 수정 부분  put->patch
+[33m5078c57[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mfeat/admin[m[33m)[m Merge remote-tracking branch 'origin/test/auth-security' into feat/admin
+[33m7f7c919[m[33m ([m[1;31morigin/feat/admin[m[33m)[m 삭제 복구í 토글 수정완료, 프로젝트레포,매퍼,엔티티 일부수정
+[33mff5d367[m Merge pull request #3 from MiniProject2-MATE/refactor/unify-api-response
+[33m7a49bd7[m 형식 통합
+[33m45e7ae7[m Merge pull request #2 from MiniProject2-MATE/feat/nicknameauto
+[33ma4bc505[m[33m ([m[1;31morigin/feat/nicknameauto[m[33m)[m 회원가입 시 이미지 자동등록(직접 등록x)
+[33mbdfbf4a[m Merge pull request #1 from MiniProject2-MATE/feat/nicknameauto
+[33m93ca5a5[m 회원가입 nickname 미 입력 시 이메일 기반 자동 할당
+[33m818d287[m Merge branch 'feat/admin' into test/auth-security
+[33m95d7be9[m[33m ([m[1;32mfeat/controller[m[33m)[m 어드민 통합
+[33me368254[m auth/refresh api 구현
+[33ma3d8c37[m Merge remote-tracking branch 'origin/test/auth-security' into feat/controller
+[33m08c341b[m Merge test/auth-security into feat/controller
+[33m9f36510[m 프로필 이미지 수정, 삭제 - 로컬 db 생성 후 저장,삭제 되도록 추가
+[33m71baa93[m logout add
+[33m24d13b2[m 게시글 작성 api - 프론트 api에 맞게 수정
+[33mea78a88[m Update ProjectController.java
+[33m4f8b5d2[m Merge remote-tracking branch 'origin/test/auth-security' into feat/controller
+[33m85a3759[m controller 수정
+[33m233cac2[m api/projects -> api/posts
+[33mf9f339a[m 권한 제어 로직 구현
+[33m11efc0c[m[33m ([m[1;32mfeat/service[m[33m)[m admin paging
+[33m68f8dc2[m securityconfig merge 오류 해결
+[33mbd82fc3[m 로그인 authcontroller 추가 구현
+[33m6289b75[m Merge: feat/controller와 feat/security 충돌 해결 및 통합 완료
+[33m86c7f82[m Merge branch 'feat/controller' of https://github.com/MiniProject2-MATE/Backend-MATE into test/auth-security
+[33m89b537a[m[33m ([m[1;31morigin/feat/security[m[33m)[m fix: UserRepository 및 ErrorCode 파일 동기화로 누락된 에러 해결
+[33mb433f12[m fix: AuthServiceImpl 및 인터페이스 충돌 해결 완료
+[33mbffb532[m Merge: AuthService.java 병합 충돌 해결
+[33m4df7311[m Merge: AuthService.java 병합 충돌 해결 및 반환 타입 일치
+[33mff7fd4f[m Merge: feat/security 병합 및 AuthServiceImpl 코드 충돌 해결
+[33mf0ac900[m fix: AuthService 인터페이스 반환 타입 수정 및 AuthServiceImpl 로그인 로직 안정화
+[33ma15b42e[m 이메일, 닉네임, 전화번호 중복 수정
+[33m36145e7[m feat: Spring Security 설정 및 JWT 기반 로그인/회원가입 비즈니스 로직 구현
+[33mc240749[m ãproperties update
+[33m051bff2[m 닉네임 중복 확인 (회원가입, 마이페이지) api 추가 구현
+[33m3087d1b[m Update ErrorCode.java
+[33m84cfc54[m Merge branch 'feat/controller' of https://github.com/MiniProject2-MATE/Backend-MATE into feat/controller
+[33mc2f6348[m 모집 마감 error test
+[33maad5e26[m ApplicationController 생성 및 프로젝트 삭제 FK 오류 수정
+[33md812f62[m Update AuthController.java
+[33m3b80fec[m Update SecurityConfig.java
+[33ma6a7e3b[m b충돌해결
+[33m7074400[m project&projectMember&Comment&BoardPost controller add
+[33m2cab671[m user&auth controller 구현
+[33m54477a1[m Merge branch 'feat/service' into feat/controller
+[33m2382d16[m[33m ([m[1;31morigin/feat/service[m[33m)[m 모집글/지원글 관련 dto, service, repository 수정
+[33m9f39bbb[m UserService -> auth, user
+[33mbe72e2b[m BoardPostService update
+[33m3140acb[m exception update
+[33me817775[m common/successResponse 추가
+[33mbe247fc[m 간단 주석 수정
+[33m173373f[m serviceimpl 상세구현 추가
+[33m67bd00e[m mapper 수정 & 연결된 service 수정
+[33m213aca1[m dto->request/response로 분류
+[33mc270671[m feat/dto & service
+[33m83eb866[m Merge remote-tracking branch 'origin/chore/db-init' into feat/service
+[33me73996e[m[33m ([m[1;31morigin/chore/db-init[m[33m)[m chore: Flyway 비활성화 및 JPA 순환 참조 에러 해결
+[33m86adf73[m chore: DB 초기화 스크립트(data.sql) 추가 및 프로파일 실행 옵션 분리
+[33m6f1661f[m Merge branch 'feat/exception' into feat/service
+[33m99ac714[m[33m ([m[1;31morigin/feat/exception[m[33m)[m feat/exception basic
+[33m9c22fcf[m[33m ([m[1;31morigin/feat/repository[m[33m)[m feat: JPA Repository 생성 및 연관관계 매핑 테스트 완료
+[33m8f9e0bc[m[33m ([m[1;31morigin/feat/entity[m[33m)[m chore: chore/profile에서 누락된 application.properties 복구
+[33m1f4b388[m fix: application.properties 병합 충돌 해결 (삭제)
+[33m707701b[m chore: 불필요한 application.properties 삭제
+[33m2fe50ff[m feat: 도메인 Entity 및 Enum 클래스 구현 완료
+[33ma1346e6[m feat: 도메인 Entity 및 Enum 클래스 구현 완료
+[33m1d7d0c5[m[33m ([m[1;31morigin/chore/profile[m[33m)[m dev,prod,test properties add
+[33m72f2461[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m chore: application.properties 주석 보강 및 SQL 파라미터 로깅 추가
+[33m5f957df[m config: MariaDB 데이터베이스 및 JPA 초기 설정 추가
+[33m8e787bf[m ã플라이웨이, jwt, 시큐리티 디펜던시 추가 및 파미     시 추가 ë°및 패키지 추가
+[33mb368bac[m first commit
