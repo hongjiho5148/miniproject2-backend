@@ -17,6 +17,8 @@ public class ApplicationMapper {
                 .id(application.getId())
                 .projectId(application.getProject().getId())
                 .projectTitle(application.getProject().getTitle())
+                .category(application.getProject().getCategory() != null ?  // 추가
+                        application.getProject().getCategory().name() : null) // 추가
                 .applicantId(application.getApplicant().getId())
                 .applicantNickname(application.getApplicant().getNickname())
                 .applicantPosition(application.getPosition() != null ?
