@@ -25,6 +25,9 @@ public class ApplicationResponseDto {
 
     private Set<String> techStacks;
 
+    private String link;
+    private String contact;
+
     private ApplicationStatus status;
     private LocalDateTime createdAt;
 
@@ -38,6 +41,9 @@ public class ApplicationResponseDto {
                 .message(application.getMessage())
                 .applicantNickname(application.getApplicant().getNickname())
                 .profileImg(application.getApplicant().getProfileImg())
+                .link(application.getLink())
+                .contact(application.getContact())
+                .techStacks(application.getApplicant().getTechStacks())
                 // 이 부분을 추가해야 화면에 '지원 분야'가 정상적으로 나옵니다!
                 .applicantPosition(application.getPosition() != null ? application.getPosition().name() : "선택없음")
 

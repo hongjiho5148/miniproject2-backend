@@ -24,6 +24,8 @@ public class ApplicationMapper {
                 .applicantPosition(application.getPosition() != null ?
                         application.getPosition().name() : null)
                 .techStacks(application.getApplicant().getTechStacks())
+                .link(application.getLink())
+                .contact(application.getContact())
                 .profileImg(application.getApplicant().getProfileImg())
                 .message(application.getMessage())
                 .status(application.getStatus())
@@ -39,6 +41,8 @@ public class ApplicationMapper {
                 .project(project)
                 .applicant(applicant)
                 .message(requestDto.getMessage())
+                .link(requestDto.getLink())
+                .contact(requestDto.getContact())
                 .position(requestDto.getPosition()) // ✅ 추가: DTO의 포지션을 Entity에 매핑
                 .status(ApplicationStatus.PENDING)
                 .build();
