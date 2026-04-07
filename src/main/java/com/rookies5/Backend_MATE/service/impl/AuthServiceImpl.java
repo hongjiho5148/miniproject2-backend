@@ -5,7 +5,7 @@ import com.rookies5.Backend_MATE.dto.response.AuthResponseDto;
 import com.rookies5.Backend_MATE.dto.response.UserResponseDto;
 import com.rookies5.Backend_MATE.entity.RefreshToken;
 import com.rookies5.Backend_MATE.entity.User;
-import com.rookies5.Backend_MATE.entity.enums.TechStack; // 👈 추가
+import com.rookies5.Backend_MATE.entity.config.TechStack; // 👈 추가
 import com.rookies5.Backend_MATE.exception.BusinessException;
 import com.rookies5.Backend_MATE.exception.EntityNotFoundException;
 import com.rookies5.Backend_MATE.exception.ErrorCode;
@@ -23,7 +23,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional

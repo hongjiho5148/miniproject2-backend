@@ -1,4 +1,4 @@
-package com.rookies5.Backend_MATE.entity.enums;
+package com.rookies5.Backend_MATE.entity.config;
 
 import java.util.Arrays;
 import java.util.Collections;

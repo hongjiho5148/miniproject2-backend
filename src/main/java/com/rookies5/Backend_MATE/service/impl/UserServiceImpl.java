@@ -6,12 +6,10 @@ import com.rookies5.Backend_MATE.dto.response.ProjectResponseDto;
 import com.rookies5.Backend_MATE.dto.response.UserResponseDto;
 import com.rookies5.Backend_MATE.entity.Project;
 import com.rookies5.Backend_MATE.entity.User;
-import com.rookies5.Backend_MATE.entity.enums.TechStack; // 👈 추가
+import com.rookies5.Backend_MATE.entity.config.TechStack; // 👈 추가
 import com.rookies5.Backend_MATE.exception.BusinessException;
 import com.rookies5.Backend_MATE.exception.EntityNotFoundException;
 import com.rookies5.Backend_MATE.exception.ErrorCode;
-import com.rookies5.Backend_MATE.mapper.ApplicationMapper;
-import com.rookies5.Backend_MATE.mapper.ProjectMapper;
 import com.rookies5.Backend_MATE.mapper.UserMapper;
 import com.rookies5.Backend_MATE.repository.*;
 // import com.rookies5.Backend_MATE.repository.ProjectRepository;     // 나중에 추가 시 주석 해제
