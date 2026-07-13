@@ -1,7 +1,5 @@
 ## 💻 Backend-MATE
 
-<img src="https://github.com/user-attachments/assets/717b927f-3030-41cd-b76a-239c3768ba68" alt="Group 4" width="800px" />
-
 ## 📖 소개 및 개요
 - **목적**: 효율적인 팀 매칭과 스터디 모집 과정을 자동화하고 관리하기 위한 RESTful API 서버입니다.
 
@@ -41,12 +39,94 @@
 | 사용자/마이페이지 도메인 REST API 개발 및 폼 검증 | DB/JPA 설계, Spring Security 인증/인가, 문서화 | 모집글/신청 도메인 API 개발, JPA 성능 튜닝 페이징/검색 최적화 | React환경 초기세팅, 전역상태관리 (Redux) 연동, 로그인/회원가입 UI 구현 | 메인/상세 페이지 반응형 UI 구현, Axios 연동 및 클라이언트 에러 핸들링 | Thymeleaf 기반 서버사이드 관리자(admin) 페이지 구현 및 전체 서비스 QA |
 | github:<br> [hongjiho5148](https://github.com/hongjiho5148)| github:<br> [nirey-l](https://github.com/nirey-l) | github:<br> [hjyouns](https://github.com/hjyouns) | github:<br> [Hyeonseok93](https://github.com/Hyeonseok93)| github:<br> [pjcosmos](https://github.com/pjcosmos) | github:<br> [Jangdochi](https://github.com/Jangdochi) |    
 
-##  <h3 id="erd">2. 📚 핵심 도메인 및 ERD 개요</h3>
-- **User (회원)**: 닉네임, 기술 스택, 포지션 정보를 보유하며 여러 프로젝트를 소유하거나 참여할 수 있습니다.
-- **Project (모집글)**: 카테고리, 모집 인원, 기술 스택을 정의하며 특정 `User`가 생성(Owner)합니다.
-- **Application (지원서)**: `User`가 `Project`에 지원할 때 생성되며, 방장에 의해 승인/거절 상태가 결정됩니다. (1:N 관계)
-- **ProjectMember (참여 멤버)**: 프로젝트에 최종 합류된 인원들을 관리합니다. (User-Project N:M 해소 엔티티)
-- **BoardPost & Comment**: 각 프로젝트 내에서 소통을 위한 게시글과 댓글 기능을 제공합니다.
+##  <h3 id="erd">2. 📚 핵심 도메인 및 ERD 설계서</h3>
+
+본 프로젝트의 **Entity 설계 및 ERD 개요**입니다. 비즈니스 도메인을 객체-관계 매핑(ORM)으로 정의하여 확장성과 유지보수성을 고려해 설계되었습니다.
+
+```mermaid
+erDiagram
+    USERS {
+        Long user_id PK
+        String email UK
+        String password
+        String nickname UK
+        Position position
+        UserRole role
+        String profile_img
+        String phone_number UK
+    }
+
+    PROJECTS {
+        Long project_id PK
+        Long owner_id FK
+        Category category
+        String title
+        String content
+        Integer recruit_count
+        Integer current_count
+        OnOffline on_offline
+        ProjectStatus status
+        LocalDate end_date
+    }
+
+    APPLICATIONS {
+        Long application_id PK
+        Long project_id FK
+        Long applicant_id FK
+        String message
+        Position position
+        ApplicationStatus status
+        LocalDateTime applied_at
+    }
+
+    PROJECT_MEMBERS {
+        Long member_id PK
+        Long project_id FK
+        Long user_id FK
+        MemberRole role
+        LocalDateTime joined_at
+    }
+
+    BOARD_POSTS {
+        Long post_id PK
+        Long project_id FK
+        Long author_id FK
+        String title
+        String content
+        Integer view_count
+    }
+
+    COMMENTS {
+        Long comment_id PK
+        Long post_id FK
+        Long author_id FK
+        String content
+    }
+
+    REFRESH_TOKENS {
+        Long id PK
+        Long user_id FK
+        String token_value
+    }
+
+    ADMIN_LOGS {
+        Long id PK
+        String action
+        LocalDateTime created_at
+    }
+
+    USERS ||--o{ PROJECTS : "owns (1:N)"
+    USERS ||--o{ APPLICATIONS : "applies (1:N)"
+    PROJECTS ||--o{ APPLICATIONS : "receives (1:N)"
+    USERS ||--o{ PROJECT_MEMBERS : "belongs to (1:N)"
+    PROJECTS ||--o{ PROJECT_MEMBERS : "has (1:N)"
+    USERS ||--o{ BOARD_POSTS : "writes (1:N)"
+    PROJECTS ||--o{ BOARD_POSTS : "contains (1:N)"
+    USERS ||--o{ COMMENTS : "writes (1:N)"
+    BOARD_POSTS ||--o{ COMMENTS : "contains (1:N)"
+    USERS ||--o| REFRESH_TOKENS : "has (1:1)"
+```
+
 
 ## <h3 id="api">3. 🛠️ 주요 API 기능 요약</h3>
 
