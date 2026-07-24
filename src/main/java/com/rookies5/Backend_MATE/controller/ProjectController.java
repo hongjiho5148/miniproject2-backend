@@ -52,11 +52,15 @@ public class ProjectController {
     public SuccessResponse<PageResponseDto<ProjectResponseDto>> getAllProjects(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String onOffline,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String techStack,
             @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        log.info("전체 프로젝트 목록 조회 요청 - category: {}, keyword: {}, page: {}", category, keyword, pageable.getPageNumber());
+        log.info("전체 프로젝트 목록 조회 요청 - category: {}, keyword: {}, onOffline: {}, status: {}, techStack: {}, page: {}",
+                category, keyword, onOffline, status, techStack, pageable.getPageNumber());
 
         // 1. 서비스에서 Page 객체를 받아옵니다.
-        Page<ProjectResponseDto> projectPage = projectService.getAllProjects(category, keyword, pageable);
+        Page<ProjectResponseDto> projectPage = projectService.getAllProjects(category, keyword, onOffline, status, techStack, pageable);
 
         // 2. 프론트엔드(postStore.js)가 원하는 data.page 구조로 감싸서 반환합니다.
         PageResponseDto<ProjectResponseDto> wrappedResponse = new PageResponseDto<>(projectPage);

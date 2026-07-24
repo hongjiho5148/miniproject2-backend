@@ -9,6 +9,7 @@ import com.rookies5.Backend_MATE.entity.User;
 import com.rookies5.Backend_MATE.entity.enums.ApplicationStatus;
 import com.rookies5.Backend_MATE.entity.enums.Category;
 import com.rookies5.Backend_MATE.entity.enums.MemberRole;
+import com.rookies5.Backend_MATE.entity.enums.OnOffline;
 import com.rookies5.Backend_MATE.entity.enums.ProjectStatus;
 import com.rookies5.Backend_MATE.exception.BusinessException;
 import com.rookies5.Backend_MATE.exception.EntityNotFoundException;
@@ -87,23 +88,27 @@ public class ProjectServiceImpl implements ProjectService {
      */
     @Transactional(readOnly = true)
     @Override
-    public Page<ProjectResponseDto> getAllProjects(String categoryStr, String keyword, Pageable pageable) {
-        Category category = null;
+    public Page<ProjectResponseDto> getAllProjects(String categoryStr, String keyword, String onOfflineStr, String statusStr, String techStack, Pageable pageable) {
+        Category category = parseEnumSafely(Category.class, categoryStr);
+        OnOffline onOffline = parseEnumSafely(OnOffline.class, onOfflineStr);
+        ProjectStatus status = parseEnumSafely(ProjectStatus.class, statusStr);
 
-        // 1. 카테고리 문자열을 Enum으로 변환
-        if (categoryStr != null && !categoryStr.trim().isEmpty()) {
-            try {
-                category = Category.valueOf(categoryStr.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                // 잘못된 카테고리 값이 들어오면 필터링하지 않음 (null 유지)
-            }
-        }
+        // QueryDSL 기반 동적 필터링 쿼리 호출 (카테고리, 키워드, 온오프라인, 모집상태, 기술스택 조합 검색)
+        Page<Project> projectPage = projectRepository.findAllWithFilters(category, keyword, onOffline, status, techStack, pageable);
 
-        // 2. 통합 필터링 쿼리 호출 (카테고리, 키워드 검색 포함)
-        Page<Project> projectPage = projectRepository.findAllWithFilters(category, keyword, pageable);
-
-        // 3. DTO 변환 및 반환
         return projectPage.map(ProjectMapper::mapToResponse);
+    }
+
+    // 잘못된 enum 문자열이 들어오면 필터링하지 않도록 null로 무시
+    private <E extends Enum<E>> E parseEnumSafely(Class<E> enumClass, String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Enum.valueOf(enumClass, value.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**

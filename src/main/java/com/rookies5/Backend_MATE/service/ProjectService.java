@@ -25,10 +25,10 @@ public interface ProjectService {
     ProjectResponseDto getProjectById(Long projectId);
 
     /**
-     * 전체 프로젝트 목록 조회 (페이징 지원)
+     * 전체 프로젝트 목록 조회 (페이징 + 동적 필터링 지원)
      * @return 메인 페이지나 목록에 뿌려줄 프로젝트 페이징 결과
      */
-    Page<ProjectResponseDto> getAllProjects(String category, String keyword, Pageable pageable);
+    Page<ProjectResponseDto> getAllProjects(String category, String keyword, String onOffline, String status, String techStack, Pageable pageable);
 
     /**
      * 프로젝트 정보 수정

@@ -29,6 +29,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<spring-boot-admin.version>3.5.8</spring-boot-admin.version>
+		<querydsl.version>5.1.0</querydsl.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -123,6 +124,21 @@
             <artifactId>cloudinary-http44</artifactId>
             <version>1.36.0</version>
         </dependency>
+
+        <!-- QueryDSL (Jakarta) -->
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-jpa</artifactId>
+            <classifier>jakarta</classifier>
+            <version>${querydsl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-apt</artifactId>
+            <classifier>jakarta</classifier>
+            <version>${querydsl.version}</version>
+            <scope>provided</scope>
+        </dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -147,7 +163,27 @@
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</path>
+						<path>
+							<groupId>com.querydsl</groupId>
+							<artifactId>querydsl-apt</artifactId>
+							<classifier>jakarta</classifier>
+							<version>${querydsl.version}</version>
+						</path>
+						<path>
+							<groupId>jakarta.persistence</groupId>
+							<artifactId>jakarta.persistence-api</artifactId>
+							<version>3.1.0</version>
+						</path>
+						<path>
+							<groupId>jakarta.annotation</groupId>
+							<artifactId>jakarta.annotation-api</artifactId>
+							<version>2.1.1</version>
+						</path>
 					</annotationProcessorPaths>
+					<annotationProcessors>
+						<annotationProcessor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor</annotationProcessor>
+						<annotationProcessor>com.querydsl.apt.jpa.JPAAnnotationProcessor</annotationProcessor>
+					</annotationProcessors>
 				</configuration>
 			</plugin>
 			<plugin>
