@@ -1,6 +1,7 @@
 package com.rookies5.Backend_MATE.repository;
 
 import com.rookies5.Backend_MATE.entity.BoardPost;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,8 @@ import java.util.List;
 
 public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
     // 프로젝트 ID로 게시글 찾기 (페이징 지원)
+    // 목록 응답에서 작성자 닉네임·프로필이미지를 매번 꺼내 쓰므로, author를 함께 즉시 로딩해 N+1을 방지한다.
+    @EntityGraph(attributePaths = "author")
     Page<BoardPost> findAllByProjectId(Long projectId, Pageable pageable);
 
     // 기존: 프로젝트 ID로 게시글 찾기 + 작성일 최신순 정렬
