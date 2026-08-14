@@ -139,6 +139,8 @@ public class UserServiceImpl implements UserService {
         }
 
         // 이 유저가 작성한 게시글, 댓글 등 흔적 지우기
+        // 본인 게시글에 달린 (다른 사람이 쓴 것 포함) 댓글을 먼저 정리 - 게시글이 삭제된 뒤엔 서브쿼리가 못 찾음
+        commentRepository.softDeleteAllByPostAuthorId(userId);
         boardPostRepository.softDeleteAllByAuthorId(userId);
         commentRepository.softDeleteAllByAuthorId(userId);
         applicationRepository.softDeleteAllByApplicantId(userId);
