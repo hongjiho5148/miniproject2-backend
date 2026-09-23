@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Claude Code (local-only, may contain machine-specific paths/history) ###
+.claude/settings.local.json

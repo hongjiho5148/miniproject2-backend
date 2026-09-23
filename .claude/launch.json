@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mate-backend",
+      "runtimeExecutable": "C:\\Users\\wlgh5\\OneDrive\\문서\\GitHub\\miniproject2-backend\\mvnw.cmd",
+      "runtimeArgs": ["spring-boot:run"],
+      "port": 8080
+    },
+    {
+      "name": "mate-frontend",
+      "runtimeExecutable": "C:\\Users\\wlgh5\\OneDrive\\문서\\GitHub\\miniproject2-front\\run-dev.cmd",
+      "runtimeArgs": [],
+      "port": 5173
+    }
+  ]
+}
