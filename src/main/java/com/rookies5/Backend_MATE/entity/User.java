@@ -7,6 +7,7 @@ import com.rookies5.Backend_MATE.entity.enums.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
@@ -70,8 +71,38 @@ public class User extends BaseEntity {
     @JsonIgnore
     private List<Project> myProjects = new ArrayList<>();
 
+    // 로그인 연속 실패 횟수와 잠금 해제 시각 (무차별 대입 공격 방어)
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(name = "failed_login_count", nullable = false)
+    private int failedLoginCount = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
+    }
+
+    public boolean isLocked(LocalDateTime now) {
+        return lockedUntil != null && lockedUntil.isAfter(now);
+    }
+
+    // 실패를 기록하고, 최대 횟수에 도달하면 lockDuration 동안 잠근다. 이전 잠금이 풀린 뒤라면 횟수를 새로 센다.
+    public void recordLoginFailure(LocalDateTime now, int maxAttempts, java.time.Duration lockDuration) {
+        if (lockedUntil != null && !lockedUntil.isAfter(now)) {
+            failedLoginCount = 0;
+            lockedUntil = null;
+        }
+        failedLoginCount++;
+        if (failedLoginCount >= maxAttempts) {
+            lockedUntil = now.plus(lockDuration);
+        }
+    }
+
+    public void resetLoginFailures() {
+        failedLoginCount = 0;
+        lockedUntil = null;
     }
 
     // 프로필 이미지 업데이트 (이미지 단독 수정/삭제 시 사용)

@@ -2,6 +2,7 @@ package com.rookies5.Backend_MATE.service;
 
 import com.rookies5.Backend_MATE.dto.request.UserRequestDto;
 import com.rookies5.Backend_MATE.dto.response.AuthResponseDto;
+import com.rookies5.Backend_MATE.dto.response.PasswordResetTokenResponseDto;
 import com.rookies5.Backend_MATE.dto.response.UserResponseDto;
 
 public interface AuthService {
@@ -37,9 +38,14 @@ public interface AuthService {
     String findEmailByPhoneNumber(String phoneNumber);
 
     /**
-     * 7. 비밀번호 재설정 (임시 비밀번호 발급)
+     * 7-1. 비밀번호 재설정 1단계: 본인 확인 후 1회용 재설정 토큰 발급
      */
-    String resetPassword(String email, String phoneNumber);
+    PasswordResetTokenResponseDto requestPasswordReset(String email, String phoneNumber);
+
+    /**
+     * 7-2. 비밀번호 재설정 2단계: 토큰을 검증하고 사용자가 정한 새 비밀번호로 변경
+     */
+    void confirmPasswordReset(String token, String newPassword);
 
     /**
      * 8. 로그아웃
