@@ -3,6 +3,8 @@ package com.rookies5.Backend_MATE.service.impl;
 import com.rookies5.Backend_MATE.dto.request.UserRequestDto;
 import com.rookies5.Backend_MATE.dto.response.AuthResponseDto;
 import com.rookies5.Backend_MATE.dto.response.UserResponseDto;
+import com.rookies5.Backend_MATE.dto.response.PasswordResetTokenResponseDto;
+import com.rookies5.Backend_MATE.entity.PasswordResetToken;
 import com.rookies5.Backend_MATE.entity.RefreshToken;
 import com.rookies5.Backend_MATE.entity.User;
 import com.rookies5.Backend_MATE.entity.config.TechStack; // 👈 추가
@@ -10,10 +12,14 @@ import com.rookies5.Backend_MATE.exception.BusinessException;
 import com.rookies5.Backend_MATE.exception.EntityNotFoundException;
 import com.rookies5.Backend_MATE.exception.ErrorCode;
 import com.rookies5.Backend_MATE.mapper.UserMapper;
+import com.rookies5.Backend_MATE.repository.PasswordResetTokenRepository;
 import com.rookies5.Backend_MATE.repository.RefreshTokenRepository;
 import com.rookies5.Backend_MATE.repository.UserRepository;
+import com.rookies5.Backend_MATE.security.EmailMasker;
 import com.rookies5.Backend_MATE.security.JwtTokenProvider;
+import com.rookies5.Backend_MATE.security.TokenHasher;
 import com.rookies5.Backend_MATE.service.AuthService;
+import com.rookies5.Backend_MATE.service.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +29,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Base64;
 
 @Service
 @Transactional
@@ -37,6 +47,11 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final LoginAttemptService loginAttemptService;
+
+    private static final long RESET_TOKEN_TTL_SECONDS = 600;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private static final String DEFAULT_PROFILE_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
@@ -105,6 +120,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponseDto login(String email, String password) {
+        // 잠금 중이면 비밀번호가 맞더라도 거부한다 (맞는 비밀번호로 잠금 여부를 추측하지 못하게 함)
+        userRepository.findByEmail(email)
+                .filter(found -> found.isLocked(LocalDateTime.now()))
+                .ifPresent(found -> {
+                    throw new BusinessException(ErrorCode.AUTH_ACCOUNT_LOCKED);
+                });
+
         try {
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(email, password);
@@ -115,13 +137,16 @@ public class AuthServiceImpl implements AuthService {
 
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+            user.resetLoginFailures();
 
             // Refresh Token DB 저장 로직
+            // DB 유출 시 토큰이 그대로 재사용되는 것을 막기 위해 원문이 아닌 해시값을 저장합니다.
             // 이미 이 유저의 토큰이 있으면 덮어쓰고, 없으면 새로 생성해서 저장합니다.
+            String refreshTokenHash = TokenHasher.sha256(refreshToken);
             refreshTokenRepository.findByUserId(user.getId())
                     .ifPresentOrElse(
-                            token -> token.updateToken(refreshToken), // 있으면 값 업데이트 (더티 체킹)
-                            () -> refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken)) // 없으면 새로 저장
+                            token -> token.updateTokenHash(refreshTokenHash), // 있으면 값 업데이트 (더티 체킹)
+                            () -> refreshTokenRepository.save(new RefreshToken(user.getId(), refreshTokenHash)) // 없으면 새로 저장
                     );
 
             return AuthResponseDto.builder()
@@ -138,6 +163,7 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
         } catch (AuthenticationException e) {
+            loginAttemptService.recordFailure(email);
             throw new BusinessException(ErrorCode.AUTH_INVALID_CREDENTIALS);
         }
     }
@@ -218,27 +244,54 @@ public class AuthServiceImpl implements AuthService {
     public String findEmailByPhoneNumber(String phoneNumber) {
         User user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, phoneNumber));
-        return user.getEmail();
+        // 전화번호만으로 전체 이메일이 노출되지 않도록 일부를 가린다
+        return EmailMasker.mask(user.getEmail());
     }
 
     /**
-     * 7. 비밀번호 찾기 (Controller의 반환값 + Security의 암호화 저장 통합)
+     * 7-1. 비밀번호 재설정 1단계: 본인 확인 후 10분짜리 1회용 토큰 발급 (DB에는 해시만 저장)
      */
     @Override
-    public String resetPassword(String email, String phoneNumber) {
+    public PasswordResetTokenResponseDto requestPasswordReset(String email, String phoneNumber) {
         User user = userRepository.findByEmailAndPhoneNumber(email, phoneNumber)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_MATCHED));
 
-        String tempPassword = generateTempPassword();
+        // 이전에 발급된 토큰은 모두 무효화하고 새로 발급
+        passwordResetTokenRepository.deleteAllByUserId(user.getId());
 
-        // 👇 💡 첫 번째 CCTV: 백엔드가 만든 비밀번호 양옆에 대괄호 [ ] 를 씌워서 기록!
-        log.info("🔑 [1. 백엔드 생성] 임시 비밀번호: [{}]", tempPassword);
+        byte[] randomBytes = new byte[32];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
 
-        // 💡 Security 버전의 필수 로직: DB에 저장할 때는 반드시 암호화!
-        user.updatePassword(passwordEncoder.encode(tempPassword));
+        passwordResetTokenRepository.save(PasswordResetToken.builder()
+                .userId(user.getId())
+                .tokenHash(TokenHasher.sha256(rawToken))
+                .expiresAt(LocalDateTime.now().plusSeconds(RESET_TOKEN_TTL_SECONDS))
+                .build());
 
-        // Controller 버전의 필수 로직: 생성된 임시 비밀번호를 화면에 보여주기 위해 평문 반환
-        return tempPassword;
+        return new PasswordResetTokenResponseDto(rawToken, RESET_TOKEN_TTL_SECONDS);
+    }
+
+    /**
+     * 7-2. 비밀번호 재설정 2단계: 토큰은 1회만 사용 가능하며, 사용 즉시 삭제된다.
+     * 비밀번호가 바뀌면 기존 로그인 세션(리프레시 토큰)도 모두 무효화한다.
+     */
+    @Override
+    public void confirmPasswordReset(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(TokenHasher.sha256(token))
+                .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_RESET_TOKEN_INVALID));
+
+        if (resetToken.isExpired(LocalDateTime.now())) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new BusinessException(ErrorCode.AUTH_RESET_TOKEN_INVALID);
+        }
+
+        User user = userRepository.findById(resetToken.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_RESET_TOKEN_INVALID));
+
+        user.updatePassword(passwordEncoder.encode(newPassword));
+        passwordResetTokenRepository.delete(resetToken);
+        refreshTokenRepository.deleteByUserId(user.getId());
     }
 
     /**
@@ -247,8 +300,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponseDto refresh(String refreshToken) {
-        // 1. DB에 해당 토큰이 존재하는지 검증
-        RefreshToken tokenEntity = refreshTokenRepository.findByTokenValue(refreshToken)
+        // 1. DB에 해당 토큰이 존재하는지 검증 (원문이 아닌 해시값으로 조회)
+        RefreshToken tokenEntity = refreshTokenRepository.findByTokenHash(TokenHasher.sha256(refreshToken))
                 .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_TOKEN_INVALID)); // "유효하지 않은 토큰입니다" 에러
 
         // 2. JWT 자체의 유효성 검증 (만료일이 지났는지 등)
@@ -294,21 +347,5 @@ public class AuthServiceImpl implements AuthService {
         // DB에서 해당 유저의 리프레시 토큰을 삭제하여 더 이상 토큰 갱신을 못하게 막음
         refreshTokenRepository.deleteByUserId(user.getId());
         log.info("유저 ID: {} 로그아웃 및 리프레시 토큰 삭제 완료", user.getId());
-    }
-
-    private String generateTempPassword() {
-        char[] charSet = new char[]{
-                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-                'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
-        };
-        StringBuilder tempPw = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
-            int idx = (int) (charSet.length * Math.random());
-            tempPw.append(charSet[idx]);
-        }
-        return tempPw.toString();
     }
 }

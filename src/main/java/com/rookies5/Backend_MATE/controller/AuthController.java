@@ -2,8 +2,10 @@ package com.rookies5.Backend_MATE.controller;
 
 import com.rookies5.Backend_MATE.common.SuccessResponse;
 import com.rookies5.Backend_MATE.dto.request.LoginRequestDto;
+import com.rookies5.Backend_MATE.dto.request.PasswordResetConfirmRequestDto;
 import com.rookies5.Backend_MATE.dto.request.UserRequestDto;
 import com.rookies5.Backend_MATE.dto.response.AuthResponseDto;
+import com.rookies5.Backend_MATE.dto.response.PasswordResetTokenResponseDto;
 import com.rookies5.Backend_MATE.dto.response.UserResponseDto;
 import com.rookies5.Backend_MATE.exception.BusinessException;
 import com.rookies5.Backend_MATE.exception.ErrorCode;
@@ -91,15 +93,25 @@ public class AuthController {
     }
 
     /**
-     * 6. 비밀번호 재설정 (임시 비번 발급) - 규격 통일
+     * 6-1. 비밀번호 재설정 1단계: 본인 확인 후 10분짜리 1회용 재설정 토큰 발급
      */
     @PostMapping("/reset-password")
-    public SuccessResponse<String> resetPassword(@RequestBody UserRequestDto requestDto) { // 👈 @RequestBody로 변경!
+    public SuccessResponse<PasswordResetTokenResponseDto> requestPasswordReset(@RequestBody UserRequestDto requestDto) {
         log.info("비밀번호 재설정 요청: {}", requestDto.getEmail());
 
-        String newPassword = authService.resetPassword(requestDto.getEmail(), requestDto.getPhoneNumber());
+        PasswordResetTokenResponseDto response =
+                authService.requestPasswordReset(requestDto.getEmail(), requestDto.getPhoneNumber());
 
-        return new SuccessResponse<>("임시 비밀번호가 발급되었습니다. 로그인 후 비밀번호를 변경해 주세요.", newPassword);
+        return new SuccessResponse<>("본인 확인이 완료되었습니다. 발급된 토큰으로 새 비밀번호를 설정해 주세요.", response);
+    }
+
+    /**
+     * 6-2. 비밀번호 재설정 2단계: 토큰과 새 비밀번호로 비밀번호 변경
+     */
+    @PostMapping("/reset-password/confirm")
+    public SuccessResponse<Void> confirmPasswordReset(@RequestBody @Valid PasswordResetConfirmRequestDto requestDto) {
+        authService.confirmPasswordReset(requestDto.getToken(), requestDto.getNewPassword());
+        return new SuccessResponse<>("비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.");
     }
 
     /**
@@ -108,9 +120,6 @@ public class AuthController {
     @PostMapping("/login")
     public SuccessResponse<AuthResponseDto> login(@RequestBody @Valid LoginRequestDto requestDto) {
         log.info("로그인 요청: {}", requestDto.getEmail());
-
-        // 👇 💡 두 번째 CCTV: 프론트가 보낸 비밀번호 양옆에 대괄호 [ ] 를 씌워서 기록!
-        log.info("🔑 [2. 프론트 전송] 로그인 시도 비밀번호: [{}]", requestDto.getPassword());
 
         AuthResponseDto responseDto = authService.login(requestDto.getEmail(), requestDto.getPassword());
         return new SuccessResponse<>("로그인에 성공하였습니다.", responseDto);
