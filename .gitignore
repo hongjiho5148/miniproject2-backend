@@ -34,3 +34,6 @@ build/
 
 ### Claude Code (local-only, may contain machine-specific paths/history) ###
 .claude/settings.local.json
+
+### 로컬 시크릿 (DB 비밀번호, JWT 시크릿, Cloudinary 키 등) ###
+config/application-secrets-dev.properties
