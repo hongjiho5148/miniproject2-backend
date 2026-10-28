@@ -137,17 +137,22 @@ public class ApplicationServiceImpl implements ApplicationService {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.APPLY_NOT_FOUND, applicationId));
 
+        // 서로 다른 지원서를 동시에 승인해도 정원을 넘지 않도록 프로젝트 행도 잠근다.
+        // 락 쿼리보다 먼저 프로젝트를 읽으면 오래된 인원 수가 영속성 컨텍스트에 남으므로,
+        // 프로젝트에 접근하는 권한 검사보다 반드시 먼저 잠가야 한다.
+        Long projectId = application.getProject().getId();
+        Project project = projectRepository.findByIdForUpdate(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, projectId));
+
         // 해당 프로젝트의 방장만 승인 가능
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        if (!application.getProject().getOwner().getId().equals(currentUserId)) {
+        if (!project.getOwner().getId().equals(currentUserId)) {
             throw new BusinessException(ErrorCode.AUTH_ACCESS_DENIED);
         }
 
         if (application.getStatus() != ApplicationStatus.PENDING) {
             throw new BusinessException(ErrorCode.APPLY_CANNOT_CANCEL, "이미 처리된 지원서입니다.");
         }
-
-        Project project = application.getProject();
 
         if (project.getStatus() == ProjectStatus.CLOSED) {
             throw new BusinessException(ErrorCode.PROJECT_RECRUITMENT_FULL);

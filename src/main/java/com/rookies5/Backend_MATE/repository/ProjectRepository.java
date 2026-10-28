@@ -1,8 +1,10 @@
 package com.rookies5.Backend_MATE.repository;
 
 import com.rookies5.Backend_MATE.entity.Project;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +14,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
+    // 팀원 수(currentCount)를 바꾸는 동시 요청을 직렬화하기 위한 행 잠금 조회
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Project p WHERE p.id = :id")
+    Optional<Project> findByIdForUpdate(@Param("id") Long id);
+
     // 작성자(Owner)의 ID로 프로젝트 목록을 찾는 메서드 정의
     @Query("SELECT p FROM Project p WHERE p.deletedAt IS NULL AND p.owner.id = :ownerId")
     List<Project> findAllByOwnerId(@Param("ownerId") Long ownerId);

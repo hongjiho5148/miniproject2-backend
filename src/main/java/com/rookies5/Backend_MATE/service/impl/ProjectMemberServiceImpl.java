@@ -62,7 +62,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         ProjectMember targetMember = projectMemberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND, memberId));
 
-        Project project = targetMember.getProject();
+        // 승인과 퇴출이 동시에 일어나도 팀원 수(currentCount)가 어긋나지 않도록 프로젝트 행을 잠근다
+        Project project = projectRepository.findByIdForUpdate(targetMember.getProject().getId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, targetMember.getProject().getId()));
         User user = targetMember.getUser(); // 퇴출될 유저
         Long ownerId = project.getOwner().getId();
 
